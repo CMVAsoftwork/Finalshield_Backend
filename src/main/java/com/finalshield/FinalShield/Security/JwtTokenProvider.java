@@ -1,12 +1,14 @@
 package com.finalshield.FinalShield.Security;
 
 import com.finalshield.FinalShield.Model.Usuario;
+import com.finalshield.FinalShield.Repositorios.UsuarioRepositorio;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +17,9 @@ import java.util.Date;
 
 @Component
 public class JwtTokenProvider {
+    @Autowired
+    private UsuarioRepositorio usuarioRepositorio;
+
     @Value("${jwt.secret}")
     private String jwtSecret;
 
@@ -24,19 +29,6 @@ public class JwtTokenProvider {
     private Key getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
         return Keys.hmacShaKeyFor(keyBytes);
-    }
-
-    public String generarToken(Usuario usuario) {
-        Date ahora = new Date();
-        Date expiracion = new Date(ahora.getTime() + jwtExpiration);
-
-        return Jwts.builder()
-                .setSubject(usuario.getCorreo())
-                .claim("nombre", usuario.getNombre())
-                .setIssuedAt(ahora)
-                .setExpiration(expiracion)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
-                .compact();
     }
 
     public String obtenerCorreoDesdeJWT(String token) {
@@ -59,5 +51,26 @@ public class JwtTokenProvider {
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
+    }
+
+    public String generarToken(String correo, String nombre) {
+        Date ahora = new Date();
+        Date expiracion = new Date(ahora.getTime() + jwtExpiration);
+
+        return Jwts.builder()
+                .setSubject(correo)
+                .claim("nombre", nombre)
+                .setIssuedAt(ahora)
+                .setExpiration(expiracion)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+                .compact();
+    }
+
+    public String generarTokenDesdeRefresh(String correo) {
+
+        Usuario usuario = usuarioRepositorio.findByCorreo(correo)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        return generarToken(usuario.getCorreo(), usuario.getNombre());
     }
 }
