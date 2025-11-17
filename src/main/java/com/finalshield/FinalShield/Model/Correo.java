@@ -14,6 +14,6 @@ public class Correo {
     private Integer idCorreo;
     private String contenidoCifrado, claveCifDes, estatus;
 
-    @OneToOne(mappedBy = "correo")
+    @OneToOne(mappedBy = "correo", fetch = FetchType.EAGER)
     private EnvioCorreo envioCorreo;
 }
