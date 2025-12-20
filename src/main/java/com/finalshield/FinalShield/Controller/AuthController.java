@@ -69,15 +69,11 @@ public class AuthController {
         Usuario usuario = usuarioRepositorio.findByCorreo(request.getCorreo())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        if (!usuario.getHuella())
+        if (!usuario.getHuella()) {
             return ResponseEntity.status(403).body(null);
+        }
 
-        String token = jwtTokenProvider.generarToken(usuario.getCorreo(), usuario.getNombre());
-
-        LoginResponse response = new LoginResponse();
-        response.setToken(token);
-        response.setCorreo(usuario.getCorreo());
-
+        LoginResponse response = ServeUsuario.loginBiometrico(request.getCorreo());
         return ResponseEntity.ok(response);
     }
 

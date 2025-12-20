@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class ArchivoListaDTo {
+public class ArchivoListaDTO {
     private Integer idArchivo;
     private String nombreArchivo;
     private String fecha;

@@ -35,6 +35,8 @@ public class SecurityConfig {
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/.well-known/assetlinks.json").permitAll()
+                        .requestMatchers(HttpMethod.HEAD, "/api/enlaces/*/validar").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auth/biometrico-activo/{correo}").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/registro", "/api/auth/habilitar-biometrico", "/api/auth/login-bio").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/enlaces/*/validar").permitAll()

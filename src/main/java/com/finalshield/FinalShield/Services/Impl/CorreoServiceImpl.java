@@ -177,13 +177,7 @@ public class CorreoServiceImpl implements CorreoService {
     <div class="container">
         <h2>🔐 Has recibido un mensaje seguro</h2>
         <p>Hola,</p>
-        <p>Has recibido un mensaje o archivo cifrado a través de <strong>FileShield</strong>. Para acceder al contenido, sigue estos pasos:</p>
-        <ol>
-            <li>Abre la aplicación <strong>FileShield</strong> en tu equipo.</li>
-            <li>Inicia sesión con tu correo registrado.</li>
-            <li>Ve a la sección <strong>“Ver clave”</strong>.</li>
-            <li>Pega el siguiente enlace cuando se te solicite:</li>
-        </ol>
+        <p>Has recibido un mensaje o archivo cifrado a través de <strong>FinalShield</strong>. Para acceder al contenido, da click en el botón de abajo</p>
         <a href="%s" class="btn">Abrir Enlace Seguro</a>
         <p class="footer">
             Este enlace expira en 24 horas y solo puede usarse una vez.<br>

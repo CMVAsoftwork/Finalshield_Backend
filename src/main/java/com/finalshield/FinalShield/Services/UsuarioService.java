@@ -16,4 +16,5 @@ public interface UsuarioService {
     void cambiarContrasena(String correo, String contrasenaActual, String nuevaContrasena);
     void recuperarContrasenaSinToken(String correo, String contrasenaActual, String nuevaContrasena);
     Boolean isBiometricoActivo(String correo);
+    LoginResponse loginBiometrico(String correo);
 }

@@ -96,7 +96,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         byte[] claveAESCifradaBytes = Base64.getDecoder().decode(claveAESCifradaSoloBase64);
 
         BytesEncryptor desencriptadorClaveAES = Encryptors.stronger(request.getContrasena(), saltParaDescifrado);
-        byte[] claveAESDescifradaBytes = desencriptadorClaveAES.decrypt(claveAESCifradaBytes); // Aquí obtienes los bytes de la CLAVE AES pura
+        byte[] claveAESDescifradaBytes = desencriptadorClaveAES.decrypt(claveAESCifradaBytes);
         String claveAESDescifradaParaClienteBase64 = Base64.getEncoder().encodeToString(claveAESDescifradaBytes);
 
         String token = jwtTokenProvider.generarToken(usuario.getCorreo(), usuario.getNombre());
@@ -212,5 +212,30 @@ public class UsuarioServiceImpl implements UsuarioService {
         return RepoUsuario.findByCorreo(correo)
                 .map(Usuario::getHuella)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    }
+
+    @Override
+    public LoginResponse loginBiometrico(String correo) {
+        Usuario usuario = RepoUsuario.findByCorreo(correo)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado."));
+
+        String clavePersonalCifrada = usuario.getClaveCifDesPersonal();
+        String claveAESDescifradaParaClienteBase64 = null;
+
+        if (clavePersonalCifrada != null && clavePersonalCifrada.contains(":")) {
+            claveAESDescifradaParaClienteBase64 = clavePersonalCifrada;
+        }
+
+        String token = jwtTokenProvider.generarToken(usuario.getCorreo(), usuario.getNombre());
+
+        LoginResponse response = new LoginResponse();
+        response.setToken(token);
+        response.setCorreo(usuario.getCorreo());
+        response.setNombre(usuario.getNombre());
+        response.setIdUsuario(usuario.getIdUsuario());
+
+        response.setClaveCifDesPersonal(claveAESDescifradaParaClienteBase64);
+
+        return response;
     }
 }
