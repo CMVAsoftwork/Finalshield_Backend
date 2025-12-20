@@ -34,4 +34,5 @@ build/
 
 ### Archivos personales ###
 application.properties
+src/main/resources/static/.well-known/assetlinks.json
 
