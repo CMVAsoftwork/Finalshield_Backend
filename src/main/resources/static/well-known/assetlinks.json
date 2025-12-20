@@ -1,8 +1,0 @@
-[{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "com.example.finalshield",
-    "sha256_cert_fingerprints": ["71:5B:50:F1:3D:FC:E4:45:40:22:F1:AE:E1:A5:07:78:EF:9F:E5:70:A1:9E:7E:06:FA:B2:95:63:C4:35:64:0B"]
-  }
-}]
