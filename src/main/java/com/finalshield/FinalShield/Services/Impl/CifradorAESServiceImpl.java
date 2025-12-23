@@ -15,16 +15,21 @@ import java.util.Base64;
 
 @Service
 public class CifradorAESServiceImpl implements CifradorAESService {
+    // Firma para identificar los archivos cifrados.
     private static final String MAGIC_HEADER = "FSHIELD";
+
+    // Algoritmo y modo de cifrado.
     private static final String ALGORITMO = "AES";
     private static final String ALGORITMO_COMPLETO = "AES/CBC/PKCS5Padding";
 
+    // Genera clave aleatoria para el cifrado.
     private IvParameterSpec generarIv() {
         byte[] iv = new byte[16];
         new SecureRandom().nextBytes(iv);
         return new IvParameterSpec(iv);
     }
 
+    // Genera clave de 256 bits
     @Override
     public SecretKey generarClave() {
         try {
@@ -36,25 +41,30 @@ public class CifradorAESServiceImpl implements CifradorAESService {
         }
     }
 
+    // Convierte una clave en un array de bytes.
     @Override
     public byte[] claveABytes(SecretKey clave) {
         return clave.getEncoded();
     }
 
+    // Convierte un array de bytes en una clave AES.
     @Override
     public SecretKey bytesAClave(byte[] bytes) {
         return new SecretKeySpec(bytes, ALGORITMO);
     }
 
+    // Convierte una clave AES a una cadena de texto base64.
     public String claveABase64(SecretKey clave) {
         return Base64.getEncoder().encodeToString(clave.getEncoded());
     }
 
+    // Convierte una cadena de texto base64 en una clave AES.
     public SecretKey base64AClave(String base64) {
         byte[] bytes = Base64.getDecoder().decode(base64);
         return new SecretKeySpec(bytes, ALGORITMO);
     }
 
+    // Cifra un archivo físico y lo guarda en otro archivo, con header y IV al inicio del archivo.
     @Override
     public void cifrarArchivo(File archivoOriginal, File archivoDestino, SecretKey clave)
             throws IOException, GeneralSecurityException {
@@ -62,6 +72,7 @@ public class CifradorAESServiceImpl implements CifradorAESService {
         int intentoActual = 0;
         boolean exito = false;
 
+        // Reintento
         while (!exito && intentoActual < intentosMaximos) {
             try {
                 Thread.sleep(1000);
@@ -76,9 +87,12 @@ public class CifradorAESServiceImpl implements CifradorAESService {
                 cipher.init(Cipher.ENCRYPT_MODE, clave, ivSpec);
 
                 try (FileOutputStream fos = new FileOutputStream(archivoDestino)) {
+
+                    // Escribe header y IV al inicio del archivo.
                     fos.write(MAGIC_HEADER.getBytes(StandardCharsets.UTF_8));
                     fos.write(ivSpec.getIV());
 
+                    // Cifra el archivo original y escribirlo en el archivo cifrado.
                      try (FileInputStream fis = new FileInputStream(archivoOriginal);
                          CipherOutputStream cos = new CipherOutputStream(fos, cipher)) {
 
@@ -103,6 +117,7 @@ public class CifradorAESServiceImpl implements CifradorAESService {
         }
     }
 
+    // Cifra un archivo adjunto en formato base64 con IV al inicio en stream
     public void cifrarArchivoStream(File inputFile, OutputStream outputStream, SecretKey clave) throws Exception {
         Cipher cipher = Cipher.getInstance(ALGORITMO_COMPLETO);
         IvParameterSpec ivSpec = generarIv();
@@ -121,6 +136,7 @@ public class CifradorAESServiceImpl implements CifradorAESService {
         }
     }
 
+    // Cifra un arreglo de bytes en formato base64 con IV al inicio.
     public byte[] cifrarBytes(byte[] datosOriginales, SecretKey clave) throws Exception {
         Cipher cipher = Cipher.getInstance(ALGORITMO_COMPLETO);
         IvParameterSpec ivSpec = generarIv();
@@ -133,6 +149,7 @@ public class CifradorAESServiceImpl implements CifradorAESService {
         return cifradoConIV;
     }
 
+    // Cifra datos en formato base64 con IV al inicio.
     public String cifrarTexto(String textoPlano, SecretKey clave) {
         try {
             Cipher cipher = Cipher.getInstance(ALGORITMO_COMPLETO);
@@ -149,11 +166,13 @@ public class CifradorAESServiceImpl implements CifradorAESService {
         }
     }
 
+    // Descifra un archivo adjunto cifrado con header y IV al inicio del archivo
     @Override
     public void descifrarArchivo(File archivoCifrado, File archivoDescifrado, SecretKey clave) throws IOException, GeneralSecurityException {
         try (FileInputStream fis = new FileInputStream(archivoCifrado);
              FileOutputStream fos = new FileOutputStream(archivoDescifrado)) {
 
+            // Lee header y IV del archivo cifrado.
             byte[] header = new byte[MAGIC_HEADER.length()];
             if (fis.read(header) != MAGIC_HEADER.length()) {
                 throw new IOException("No se pudo leer el encabezado del archivo");
@@ -164,15 +183,16 @@ public class CifradorAESServiceImpl implements CifradorAESService {
                 throw new SecurityException("El archivo no contiene la firma esperada. ¿Ya está descifrado?");
             }
 
+            // Extrae IV del archivo cifrado.
             byte[] iv = new byte[16];
             if (fis.read(iv) != 16) {
                 throw new IOException("No se pudo leer el IV del archivo cifrado.");
             }
             IvParameterSpec ivSpec = new IvParameterSpec(iv);
-
             Cipher cipher = Cipher.getInstance(ALGORITMO_COMPLETO);
             cipher.init(Cipher.DECRYPT_MODE, clave, ivSpec);
 
+            // Descifra archivo cifrado
             try (CipherInputStream cis = new CipherInputStream(fis, cipher)) {
                 byte[] buffer = new byte[1024];
                 int leido;
@@ -183,6 +203,7 @@ public class CifradorAESServiceImpl implements CifradorAESService {
         }
     }
 
+    // Descifra archivos cifrados con IV en formato base64 en un stream.
     public void descifrarArchivoStream(InputStream inputStream, OutputStream outputStream, SecretKey clave) throws Exception {
         byte[] header = new byte[MAGIC_HEADER.length()];
         int bytesLeidosHeader = inputStream.read(header);
@@ -196,6 +217,7 @@ public class CifradorAESServiceImpl implements CifradorAESService {
             throw new SecurityException("El stream no contiene la firma esperada ('" + MAGIC_HEADER + "').");
         }
 
+        // Extrae IV del stream
         byte[] iv = new byte[16];
         if (inputStream.read(iv) != 16) {
             throw new IOException("No se pudo leer el IV del stream cifrado.");
@@ -204,6 +226,7 @@ public class CifradorAESServiceImpl implements CifradorAESService {
         Cipher cipher = Cipher.getInstance(ALGORITMO_COMPLETO);
         cipher.init(Cipher.DECRYPT_MODE, clave, ivSpec);
 
+        // Descifra stream
         try (CipherInputStream cis = new CipherInputStream(inputStream, cipher)) {
             byte[] buffer = new byte[4096];
             int bytesRead;
@@ -213,6 +236,7 @@ public class CifradorAESServiceImpl implements CifradorAESService {
         }
     }
 
+    // Descifra datos cifrados con IV en formato base64
     public byte[] descifrarBytes(byte[] datosCifradosConIV, SecretKey clave) throws Exception {
         byte[] iv = new byte[16];
         System.arraycopy(datosCifradosConIV, 0, iv, 0, iv.length);
@@ -226,6 +250,7 @@ public class CifradorAESServiceImpl implements CifradorAESService {
         return cipher.doFinal(datosCifrados);
     }
 
+    // Descifra texto cifrado con IV en formato base64
     public String descifrarTexto(String textoCifradoBase64ConIV, SecretKey clave) throws GeneralSecurityException {
         try {
             byte[] combinado = Base64.getDecoder().decode(textoCifradoBase64ConIV);
@@ -244,6 +269,7 @@ public class CifradorAESServiceImpl implements CifradorAESService {
         }
     }
 
+    // Cifra un archivo adjunto con header y IV al inicio del archivo
     public byte[] descifrarAdjuntoConHeader(byte[] datosAdjunto, SecretKey clave) throws Exception {
         int IV_SIZE = 16;
         int HEADER_SIZE = MAGIC_HEADER.length();

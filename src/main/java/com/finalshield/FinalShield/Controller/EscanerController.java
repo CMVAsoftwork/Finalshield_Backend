@@ -24,9 +24,11 @@ public class EscanerController {
             @RequestPart("archivos") List<MultipartFile> archivos
     ) {
         try {
+            // Procesa los archivos y devuelve la lista de archivos procesados
             List<ArchivoDTO> resultado =
                     escanerService.procesarArchivos(idUsuario, contrasena, archivos, idCarpeta);
 
+            // Devuelve la lista de archivos procesados
             return ResponseEntity.ok(resultado);
 
         } catch (Exception e) {

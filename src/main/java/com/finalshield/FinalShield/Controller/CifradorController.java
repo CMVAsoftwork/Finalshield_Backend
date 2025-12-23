@@ -25,14 +25,18 @@ public class CifradorController {
     @PostMapping("/descifrar")
     public ResponseEntity<?> descifrarTexto(@RequestBody DescifradoRequest request) {
         try {
+            // Convierte la clave Base64 a SecretKey
             SecretKey clave = cifradorAESService.base64AClave(request.getClaveBase64());
+            // Descifra el texto usando el AES
             String textoDescifrado = cifradorAESService.descifrarTexto(
                     request.getTextoCifradoBase64(),
                     clave
             );
+            // Devuelve el texto
             return ResponseEntity.ok(textoDescifrado);
 
         } catch (GeneralSecurityException e) {
+            // Casos de errores
             System.err.println("Error de seguridad al descifrar texto: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error de seguridad al descifrar el mensaje: " + e.getMessage());
         } catch (Exception e) {
@@ -47,13 +51,16 @@ public class CifradorController {
         File temp = null;
 
         try {
+            // Creación y guardado del archivo temporalmente para poder cifrarlo
             temp = File.createTempFile("entrada", archivo.getOriginalFilename());
             archivo.transferTo(temp);
 
+            // Convierte la clave Base64 a SecretKey
             SecretKey clave = cifradorAESService.base64AClave(claveBase64);
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             cifradorAESService.cifrarArchivoStream(temp, outputStream, clave);
 
+            // Devuelve la clave cifrada en Base64
             return ResponseEntity.ok(
                     Base64.getEncoder().encodeToString(outputStream.toByteArray())
             );
@@ -63,6 +70,7 @@ public class CifradorController {
                     .body("Error al cifrar archivo: " + e.getMessage());
 
         } finally {
+            // Borrado del archivo temporal
             if (temp != null && temp.exists()) temp.delete();
         }
     }

@@ -26,6 +26,7 @@ import java.util.List;
 @Service
 public class EscanerServiceImpl implements EscanerService {
 
+    // Ruta base configurada en application.properties
     @Value("${finalshield.storage.base-path}")
     private String basePath;
 
@@ -61,6 +62,7 @@ public class EscanerServiceImpl implements EscanerService {
             Integer idCarpeta
     ) throws Exception {
 
+        // Validar usuario y recuperar clave AES
         Usuario usuario = usuarioRepo.findById(idUsuario)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
@@ -71,11 +73,13 @@ public class EscanerServiceImpl implements EscanerService {
 
         Path carpetaDestino = carpetaUsuario;
 
+        // Crear carpeta del usuario
         CarpetaMonitorizada carpeta = null;
 
+        // Si se elige una carpeta
         if (idCarpeta != null) {
             carpeta = carpetaRepo.findById(idCarpeta)
-                    .orElseThrow(() -> new RuntimeException("CarpetaMonitorizada no encontrada"));
+                    .orElseThrow(() -> new RuntimeException("Carpeta no encontrada"));
 
             carpetaDestino = carpetaUsuario.resolve("carpeta_" + idCarpeta);
             Files.createDirectories(carpetaDestino);
@@ -83,15 +87,18 @@ public class EscanerServiceImpl implements EscanerService {
 
         List<ArchivoDTO> resultado = new ArrayList<>();
 
+        // Procesar cada archivo subido
         for (MultipartFile archivoSubido : archivos) {
 
             String nombreOriginal = archivoSubido.getOriginalFilename();
             if (nombreOriginal == null)
                 nombreOriginal = "archivo";
 
+            // Guardar archivo original en disco
             Path archivoOriginal = carpetaDestino.resolve(nombreOriginal);
             archivoSubido.transferTo(archivoOriginal.toFile());
 
+            // Cifrar archivo original
             Path archivoCifrado = carpetaDestino.resolve(nombreOriginal + ".enc");
 
             cifradorAESService.cifrarArchivo(
@@ -100,8 +107,10 @@ public class EscanerServiceImpl implements EscanerService {
                     claveAES
             );
 
+            // Eliminar archivo original de disco sin cifrar
             Files.deleteIfExists(archivoOriginal);
 
+            // Guardar entidad de archivo en la BD
             Archivo entidad = new Archivo();
             entidad.setNombreArchivo(nombreOriginal + ".enc");
             entidad.setRutaArchivo(archivoCifrado.toAbsolutePath().toString());
