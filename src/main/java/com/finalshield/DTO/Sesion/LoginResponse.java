@@ -12,12 +12,18 @@ public class LoginResponse {
     private String nombre;
     private Integer idUsuario;
     private String claveCifDesPersonal;
+    private String pinReal;
+    private String pinSeguro;
 
-    public LoginResponse(String token, String correo, String nombre, Integer idUsuario, String claveCifDesPersonal) {
+
+    public LoginResponse(String token, String tipoToken, String correo, String nombre, Integer idUsuario, String claveCifDesPersonal, String pinReal, String pinSeguro) {
         this.token = token;
+        this.tipoToken = tipoToken;
         this.correo = correo;
         this.nombre = nombre;
         this.idUsuario = idUsuario;
         this.claveCifDesPersonal = claveCifDesPersonal;
+        this.pinReal = pinReal;
+        this.pinSeguro = pinSeguro;
     }
 }

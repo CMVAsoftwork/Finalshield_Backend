@@ -17,5 +17,7 @@ public class Usuario {
     private String contrasena;
     private Boolean huella;
     @Column(unique = true, nullable = false)
+    private String pinRealHash;
+    private String pinSeguroHash;
     private String correo;
 }

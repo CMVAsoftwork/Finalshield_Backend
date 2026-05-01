@@ -20,4 +20,12 @@ public class RegistroRequest {
 
     @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
     private String contrasena;
+
+    @NotBlank
+    @Size(min = 6, max = 6)
+    private String pinReal;
+
+    @NotBlank
+    @Size(min = 6, max = 6)
+    private String pinSeguro;
 }

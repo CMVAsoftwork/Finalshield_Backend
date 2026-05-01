@@ -34,9 +34,13 @@ public class AuthController {
 
     @PostMapping("/cambiar-contrasena")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<String> cambiarContrasena(@RequestBody CambiarContraseñaRequest request, Authentication authentication) {
-        String correo = authentication.getName();
-        ServeUsuario.cambiarContrasena(correo, request.getContrasenaActual(), request.getNuevaContrasena());
+    public ResponseEntity<String> cambiarContrasena(@RequestBody CambiarContraseñaRequest request) {
+        // Al usar @Data, Lombok crea getCorreo(), getContrasenaActual(), etc.
+        ServeUsuario.cambiarContrasena(
+                request.getCorreo(),
+                request.getContrasenaActual(),
+                request.getNuevaContrasena()
+        );
         return ResponseEntity.ok("Contraseña actualizada correctamente.");
     }
 
