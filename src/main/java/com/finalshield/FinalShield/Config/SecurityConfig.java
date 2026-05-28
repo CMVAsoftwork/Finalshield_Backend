@@ -41,6 +41,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/enlaces/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/enlaces/logo").permitAll()
                         .requestMatchers("/error", "/favicon.ico").permitAll()
+                        .requestMatchers("api/chat/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
