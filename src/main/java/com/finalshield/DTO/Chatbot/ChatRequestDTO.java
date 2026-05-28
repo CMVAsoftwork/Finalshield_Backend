@@ -3,6 +3,15 @@ package com.finalshield.DTO.Chatbot;
 public class ChatRequestDTO
 {
     private String message;
+    private String userId;
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
 
     public ChatRequestDTO() {
     }
