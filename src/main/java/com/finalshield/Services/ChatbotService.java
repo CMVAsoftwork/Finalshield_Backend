@@ -1,4 +1,4 @@
-package com.finalshield.FinalShield.Services;
+package com.finalshield.Services;
 
 import com.finalshield.DTO.Chatbot.ChatRequestDTO;
 import com.finalshield.DTO.Chatbot.ChatResponseDTO;

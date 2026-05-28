@@ -1,4 +1,4 @@
-package com.finalshield.FinalShield.Services.Impl;
+package com.finalshield.Services.Impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.finalshield.DTO.Chatbot.ChatRequestDTO;
 import com.finalshield.DTO.Chatbot.ChatResponseDTO;
 import com.finalshield.Model.Chatbot.ChatRule;
-import com.finalshield.FinalShield.Services.ChatbotService;
+import com.finalshield.Services.ChatbotService;
 
 import jakarta.annotation.PostConstruct;
 
@@ -97,7 +97,7 @@ public class ChatbotServiceImpl implements ChatbotService {
 
     private String normalize(String text)
     {
-        return text.toLowerCase()
+        return text.toLowerCase().trim()
                 .replace("á","a")
                 .replace("é","e")
                 .replace("í","i")

@@ -1,8 +1,8 @@
-package com.finalshield.FinalShield.Controller;
+package com.finalshield.Controller;
 
 import com.finalshield.DTO.Chatbot.ChatResponseDTO;
 import com.finalshield.DTO.Chatbot.ChatRequestDTO;
-import com.finalshield.FinalShield.Services.ChatbotService;
+import com.finalshield.Services.ChatbotService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
