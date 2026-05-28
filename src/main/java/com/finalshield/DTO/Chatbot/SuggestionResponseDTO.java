@@ -1,5 +1,7 @@
 package com.finalshield.DTO.Chatbot;
 
+import java.time.LocalDateTime;
+
 public class SuggestionResponseDTO
 {
     private String message;

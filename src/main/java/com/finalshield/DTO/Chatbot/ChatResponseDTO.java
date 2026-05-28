@@ -19,4 +19,9 @@ public class ChatResponseDTO
     public void setResponse(String response) {
         this.response = response;
     }
+
+    public ChatResponseDTO toChatResponseDto(String response)
+    {
+        return new ChatResponseDTO(response);
+    }
 }

@@ -1,28 +1,29 @@
 package com.finalshield.Model.Chatbot;
 
-import java.util.List;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
-public class ChatRule
-{
-    private List<String> keywords;
-    private List<String> responses;
+@Data
+@NoArgsConstructor
+@Entity
+@Table(name="chat_rules")
+public class ChatRule {
 
-    public ChatRule() {
-    }
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
-    public List<String> getKeywords() {
-        return keywords;
-    }
+    @Column(columnDefinition = "JSOn")
+    private String keywords;
 
-    public void setKeywords(List<String> keywords) {
-        this.keywords = keywords;
-    }
+    @Column(columnDefinition = "JSON")
+    private String responses;
 
-    public List<String> getResponses() {
-        return responses;
-    }
+    private Boolean activa=true;
 
-    public void setResponses(List<String> responses) {
-        this.responses = responses;
-    }
+    private LocalDateTime fechaCreacion;
+    private LocalDateTime fechaActualizacion;
+
 }

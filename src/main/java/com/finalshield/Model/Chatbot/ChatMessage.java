@@ -6,17 +6,11 @@ import lombok.NoArgsConstructor;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
-
 @Data
 @NoArgsConstructor
 @Entity
 @Table(name="chat_message")
-public class ChatMessageBD
+public class ChatMessage
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,4 +28,10 @@ public class ChatMessageBD
 
     private Boolean isFallback= false;
     private LocalDateTime fechaCreacion;
+
+    @PrePersist
+    public void PrePersist()
+    {
+        this.fechaCreacion=LocalDateTime.now();
+    }
 }
