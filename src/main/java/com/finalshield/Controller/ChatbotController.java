@@ -1,7 +1,7 @@
 package com.finalshield.FinalShield.Controller;
 
-import com.finalshield.FinalShield.DTO.Chatbot.ChatResponseDTO;
-import com.finalshield.FinalShield.DTO.Chatbot.ChatRequestDTO;
+import com.finalshield.DTO.Chatbot.ChatResponseDTO;
+import com.finalshield.DTO.Chatbot.ChatRequestDTO;
 import com.finalshield.FinalShield.Services.ChatbotService;
 
 import org.springframework.beans.factory.annotation.Autowired;

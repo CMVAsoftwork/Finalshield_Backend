@@ -1,4 +1,4 @@
-package com.finalshield.FinalShield.DTO.Chatbot;
+package com.finalshield.DTO.Chatbot;
 
 public class ChatResponseDTO
 {

@@ -3,9 +3,9 @@ package com.finalshield.FinalShield.Services.Impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import com.finalshield.FinalShield.DTO.Chatbot.ChatRequestDTO;
-import com.finalshield.FinalShield.DTO.Chatbot.ChatResponseDTO;
-import com.finalshield.FinalShield.Model.Chatbot.ChatRule;
+import com.finalshield.DTO.Chatbot.ChatRequestDTO;
+import com.finalshield.DTO.Chatbot.ChatResponseDTO;
+import com.finalshield.Model.Chatbot.ChatRule;
 import com.finalshield.FinalShield.Services.ChatbotService;
 
 import jakarta.annotation.PostConstruct;

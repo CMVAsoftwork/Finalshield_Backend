@@ -1,4 +1,4 @@
-package com.finalshield.FinalShield.Model.Chatbot;
+package com.finalshield.Model.Chatbot;
 
 import java.util.List;
 
