@@ -1,7 +1,13 @@
 package com.finalshield.Services.Impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
 
 import com.finalshield.DTO.Chatbot.ChatHistoryDTO;
@@ -47,33 +53,14 @@ public class ChatbotServiceImpl implements ChatbotService {
     {
         Authentication auth=SecurityContextHolder.getContext().getAuthentication();
         String username=auth.getName();
+        System.out.println("Usuario JWT: "+username);
         Usuario usuario=usuarioRepositorio.findByNombre(username).orElseThrow(()-> new RuntimeException("Usuario no encontrado"));
         Integer userId =(usuario.getIdUsuario()) ;
-        boolean isFallback=false;
         String originalMessage = request.getMessage();
         String message = normalize(originalMessage);
         String response;
+        LocalDateTime fecha=LocalDateTime.now();
 
-
-        if(message.contains("como me llamo") || message.contains("cual es mi nombre")) {
-
-             response = (username != null)
-                    ? "Tu nombre es " + username
-                    : "Aún no me dices tu nombre 😭";
-
-
-            saveChat(originalMessage, response, false, userId);
-
-            return new ChatResponseDTO(response);
-        }
-
-        if(message.contains("me llamo")) {
-            String name = message.replace("me llamo","").trim();
-            response= "Mucho gusto "+name;
-
-            saveChat(originalMessage, response, false, userId);
-            return new ChatResponseDTO(response);
-        }
 
         List<String> matchedResponses = new ArrayList<>();
 
@@ -115,14 +102,23 @@ public class ChatbotServiceImpl implements ChatbotService {
             int random =
                     (int)(Math.random() * matchedResponses.size());
 
-            response=matchedResponses.get(random);
+            response = matchedResponses.get(random);
 
-            saveChat(originalMessage, response, false, userId);
+            saveChat(originalMessage, response, false, userId, fecha);
+
             return new ChatResponseDTO(response);
         }
 
-        isFallback=true;
+        try {
+            String aiResponse=askGemini(originalMessage);
+            saveChat(originalMessage, aiResponse, true, userId, fecha);
+            return new ChatResponseDTO(aiResponse);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         saveSuggestion(originalMessage);
+
 
         List<String> fallbackResponses = List.of(
                 "No entendí esa solicitud 😭",
@@ -134,11 +130,10 @@ public class ChatbotServiceImpl implements ChatbotService {
         int random =
                 (int)(Math.random() * fallbackResponses.size());
                 response=fallbackResponses.get(random);
-                saveChat(originalMessage, response, true, userId);
                 return new ChatResponseDTO(response);
     }
 
-    private void saveChat(String message, String response, boolean fallback, Integer userId)
+    private void saveChat(String message, String response, boolean fallback, Integer userId, LocalDateTime fecha)
     {
 
         Usuario usuario= usuarioRepositorio.findById(userId).orElseThrow(()->new RuntimeException("Usuario no encontrado"));
@@ -147,6 +142,7 @@ public class ChatbotServiceImpl implements ChatbotService {
         chatMessage.setRespuesta(response);
         chatMessage.setIsFallback(fallback);
         chatMessage.setUsuario(usuario);
+        chatMessage.setFechaCreacion(fecha);
 
         chatMessageRepositorio.save(chatMessage);
 
@@ -228,7 +224,7 @@ public class ChatbotServiceImpl implements ChatbotService {
         Usuario usuario= usuarioRepositorio.findByNombre(username).orElseThrow(()->new RuntimeException("Usuario no encontrado"));
 
         List<ChatMessage>messages=
-                chatMessageRepositorio.findByUsuarioIdUsuarioOrderByFechaCreacionDesc(usuario.getIdUsuario());
+                chatMessageRepositorio.findByUsuarioIdUsuarioOrderByFechaCreacionAsc(usuario.getIdUsuario());
 
         List<ChatHistoryDTO> result=new ArrayList<>();
 
@@ -253,5 +249,53 @@ public class ChatbotServiceImpl implements ChatbotService {
                 .replace("í","i")
                 .replace("ó","o")
                 .replace("ú","u");
+    }
+
+    private final HttpClient httpClient= HttpClient.newHttpClient();
+
+    private String askGemini(String message)
+    {
+        try{
+            String prompt = """
+            Eres FinalBot, un asistente de ciberseguridad dentro de una app llamada FinalShield de cifrado de archivos.
+            Responde de forma clara, breve y útil para estudiantes de programación.
+    
+            Usuario: %s
+            """.formatted(message);
+
+            String jsonBody = """
+            {
+              "contents": [{
+                "parts": [{
+                  "text": "%s"
+                }]
+              }]
+            }
+            """.formatted(prompt);
+
+            HttpRequest httpRequest=HttpRequest.newBuilder()
+                    .uri(URI.create("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=TU_API_KEY"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .build();
+            HttpResponse<String>response= httpClient.send(
+                    httpRequest,
+                    HttpResponse.BodyHandlers.ofString()
+            );
+
+            JsonNode root= objectMapper.readTree(response.body());
+
+            return root
+                    .path("candidates")
+                    .get(0)
+                    .path("content")
+                    .path("parts")
+                    .get(0)
+                    .path("text")
+                    .asText();
+        }catch (Exception e)
+        {
+            return ("No se pudo establecer la conexion con Gemini");
+        }
     }
 }
