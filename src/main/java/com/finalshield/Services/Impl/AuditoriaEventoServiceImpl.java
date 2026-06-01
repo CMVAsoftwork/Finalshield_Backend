@@ -1,5 +1,6 @@
 package com.finalshield.Services.Impl;
 
+import com.finalshield.Auditoria.AuditoriaEventoTipo;
 import com.finalshield.Model.AuditoriaEvento;
 import com.finalshield.Repositorios.AuditoriaEventoRepositorio;
 import com.finalshield.Services.AuditoriaEventoService;
@@ -15,7 +16,7 @@ public class AuditoriaEventoServiceImpl implements AuditoriaEventoService {
 
     @Override
     public void registrarEvento(Integer usuarioId,
-                                String tipoEvento,
+                                AuditoriaEventoTipo tipoEvento,
                                 String descripcion,
                                 Boolean exitoso) {
 
@@ -31,7 +32,7 @@ public class AuditoriaEventoServiceImpl implements AuditoriaEventoService {
 
     @Override
     public void registrarEventoCompleto(Integer usuarioId,
-                                        String tipoEvento,
+                                        AuditoriaEventoTipo tipoEvento,
                                         String descripcion,
                                         String direccionIp,
                                         String dispositivo,
@@ -56,6 +57,7 @@ public class AuditoriaEventoServiceImpl implements AuditoriaEventoService {
 
     @Override
     public List<AuditoriaEvento> obtenerTodos() {
+
         return auditoriaRepo.findAll();
     }
 

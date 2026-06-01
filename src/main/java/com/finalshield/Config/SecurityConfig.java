@@ -42,7 +42,8 @@ public class SecurityConfig {
                                 "/api/auth/login",
                                 "/api/auth/registro",
                                 "/api/auth/habilitar-biometrico",
-                                "/api/auth/login-bio"
+                                "/api/auth/login-bio",
+                                "/api/estadisticas/**"
                         ).permitAll()
 
                         .requestMatchers(

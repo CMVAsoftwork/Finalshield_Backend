@@ -4,15 +4,20 @@ import com.finalshield.Auditoria.AuditoriaEventoTipo;
 import com.finalshield.Model.AuditoriaEvento;
 import com.finalshield.Repositorios.AuditoriaEventoRepositorio;
 import com.finalshield.Services.AuditoriaEventoLogsService;
+import com.finalshield.Services.AuditoriaEventoService;
 import org.springframework.stereotype.Service;
 
 
 @Service
-public class AuditoriaEventoLogsServiceImpl implements AuditoriaEventoLogsService {
-    private final AuditoriaEventoRepositorio auditoriaRepositorio;
+public class AuditoriaEventoLogsServiceImpl
+        implements AuditoriaEventoLogsService {
 
-    public AuditoriaEventoLogsServiceImpl(AuditoriaEventoRepositorio auditoriaRepositorio) {
-        this.auditoriaRepositorio = auditoriaRepositorio;
+    private final AuditoriaEventoService auditoriaService;
+
+    public AuditoriaEventoLogsServiceImpl(
+            AuditoriaEventoService auditoriaService
+    ) {
+        this.auditoriaService = auditoriaService;
     }
 
     @Override
@@ -23,14 +28,13 @@ public class AuditoriaEventoLogsServiceImpl implements AuditoriaEventoLogsServic
             String ipAddress
     ) {
 
-        AuditoriaEvento evento = new AuditoriaEvento();
-
-        evento.setUsuarioId(usuarioId.intValue());
-        evento.setTipoEvento(eventType.name());
-        evento.setDescripcion(descripcion);
-        evento.setDireccionIp(ipAddress);
-        evento.setExitoso(true);
-
-        auditoriaRepositorio.save(evento);
+        auditoriaService.registrarEventoCompleto(
+                usuarioId.intValue(),
+                eventType,
+                descripcion,
+                ipAddress,
+                "DESCONOCIDO",
+                true
+        );
     }
 }

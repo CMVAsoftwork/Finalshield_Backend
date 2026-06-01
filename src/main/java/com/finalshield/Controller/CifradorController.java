@@ -1,9 +1,11 @@
 package com.finalshield.Controller;
 
+import com.finalshield.Auditoria.AuditoriaEventoTipo;
 import com.finalshield.DTO.Cifrado.DescifradoRequest;
 import com.finalshield.Model.Archivo;
 import com.finalshield.Model.Usuario;
 import com.finalshield.Repositorios.ArchivoRepositorio;
+import com.finalshield.Services.AuditoriaEventoService;
 import com.finalshield.Services.CifradorAESService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -27,6 +29,9 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/cifrado")
 public class CifradorController {
+
+    @Autowired
+    private AuditoriaEventoService auditoriaService;
 
     @Autowired
     private CifradorAESService cifradorAESService;
@@ -103,11 +108,24 @@ public class CifradorController {
                 //guardar en base de datos
                 saved.add(archivoRepositorio.save(arch));
 
+                auditoriaService.registrarEvento(
+                        user.getIdUsuario(),
+                        AuditoriaEventoTipo.FILE_ENCRYPTED,
+                        "Archivo cifrado: " + arch.getNombreArchivo(),
+                        true
+                );
+
                 //eliminar archivo temporal
                 tempOriginal.delete();
             }
             return ResponseEntity.ok(saved);
         } catch (Exception e) {
+            auditoriaService.registrarEvento(
+                    user.getIdUsuario(),
+                    AuditoriaEventoTipo.FILE_ENCRYPTED,
+                    "Error al cifrar archivo: " + e.getMessage(),
+                    false
+            );
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
@@ -175,39 +193,73 @@ public class CifradorController {
         return ResponseEntity.ok().build();
     }
     @GetMapping("/descifrarArchivo/{idArchivo}")
-    public ResponseEntity<Resource> descifrarArchivo(@PathVariable Integer idArchivo, Authentication authentication) {
-        if (authentication == null || !(authentication.getPrincipal() instanceof Usuario)) {
+    public ResponseEntity<Resource> descifrarArchivo(
+            @PathVariable Integer idArchivo,
+            Authentication authentication) {
+
+        if (authentication == null ||
+                !(authentication.getPrincipal() instanceof Usuario)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+
         Usuario user = (Usuario) authentication.getPrincipal();
 
-        // 1. Buscar el archivo y validar que sea del usuario
-        Optional<Archivo> optionalArch = archivoRepositorio.findByIdArchivoAndUsuario(idArchivo, user);
-        if (optionalArch.isEmpty()) return ResponseEntity.notFound().build();
+        Optional<Archivo> optionalArch =
+                archivoRepositorio.findByIdArchivoAndUsuario(idArchivo, user);
+
+        if (optionalArch.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
 
         Archivo arch = optionalArch.get();
         File fileCifrado = new File(arch.getRutaArchivo());
 
         try {
-            // 2. Preparar archivo temporal y descifrar
-            File tempDescifrado = File.createTempFile("desc-", arch.getNombreArchivo());
-            SecretKey claveUsuario = cifradorAESService.base64AClave(user.getClaveCifDesPersonal());
-            cifradorAESService.descifrarArchivo(fileCifrado, tempDescifrado, claveUsuario);
 
-            // --- EL CAMBIO ESTÁ AQUÍ ---
-            // 3. ACTUALIZAR ESTADO PARA ESTADÍSTICAS
-            arch.setEstado("Descifrado"); // Cambiamos el estado
-            archivoRepositorio.save(arch); // Persistimos en la base de datos
-            // ---------------------------
+            File tempDescifrado =
+                    File.createTempFile("desc-", arch.getNombreArchivo());
 
-            // 4. Enviar el recurso
-            InputStreamResource resource = new InputStreamResource(new FileInputStream(tempDescifrado));
+            SecretKey claveUsuario =
+                    cifradorAESService.base64AClave(user.getClaveCifDesPersonal());
+
+            cifradorAESService.descifrarArchivo(
+                    fileCifrado,
+                    tempDescifrado,
+                    claveUsuario
+            );
+
+            arch.setEstado("Descifrado");
+            archivoRepositorio.save(arch);
+
+            // AUDITORÍA
+            auditoriaService.registrarEvento(
+                    user.getIdUsuario(),
+                    AuditoriaEventoTipo.FILE_DECRYPTED,
+                    "Archivo descifrado: " + arch.getNombreArchivo(),
+                    true
+            );
+
+            InputStreamResource resource =
+                    new InputStreamResource(new FileInputStream(tempDescifrado));
+
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(arch.getTipoArchivo()))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + arch.getNombreArchivo() + "\"")
+                    .header(
+                            HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"" + arch.getNombreArchivo() + "\""
+                    )
                     .body(resource);
 
         } catch (Exception e) {
+
+            // AUDITORÍA DE ERROR
+            auditoriaService.registrarEvento(
+                    user.getIdUsuario(),
+                    AuditoriaEventoTipo.FILE_DECRYPTED,
+                    "Error al descifrar archivo: " + e.getMessage(),
+                    false
+            );
+
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

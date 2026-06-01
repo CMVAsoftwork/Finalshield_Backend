@@ -12,7 +12,7 @@ public class ActividadArchivoDTO {
     private LocalDate fecha;
     private Long cifrados;
     private Long descifrados;
-    private Long correos; // Nueva columna
+    private Long correos;
 
     public ActividadArchivoDTO(Object fecha, Long cifrados, Long descifrados, Long correos) {
         if (fecha instanceof java.sql.Date) {

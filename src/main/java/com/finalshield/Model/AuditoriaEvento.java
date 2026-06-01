@@ -1,5 +1,6 @@
 package com.finalshield.Model;
 
+import com.finalshield.Auditoria.AuditoriaEventoTipo;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,8 +21,8 @@ public class AuditoriaEvento {
     private Integer usuarioId;
 
     @Column(name = "tipo_evento", nullable = false)
-    private String tipoEvento;
-
+    @Enumerated(EnumType.STRING)
+    private AuditoriaEventoTipo tipoEvento;
     private String descripcion;
 
     private LocalDateTime fecha;

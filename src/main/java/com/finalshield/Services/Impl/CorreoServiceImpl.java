@@ -1,14 +1,12 @@
 package com.finalshield.Services.Impl;
 
+import com.finalshield.Auditoria.AuditoriaEventoTipo;
 import com.finalshield.DTO.Correo.CorreoRequest;
 import com.finalshield.DTO.Correo.EnvioCorreoDTO;
 import com.finalshield.DTO.Correo.RecepcionCorreoDTO;
 import com.finalshield.Model.*;
 import com.finalshield.Repositorios.*;
-import com.finalshield.Services.CifradorAESService;
-import com.finalshield.Services.CorreoService;
-import com.finalshield.Services.EnlaceSeguroService;
-import com.finalshield.Services.UsuarioService;
+import com.finalshield.Services.*;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +28,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class CorreoServiceImpl implements CorreoService {
+    @Autowired
+    private AuditoriaEventoService auditoriaService;
     @Autowired
     private JavaMailSender mailSender;
     @Autowired
@@ -116,6 +116,13 @@ public class CorreoServiceImpl implements CorreoService {
 
         EnlaceSeguro enlace = enlaceSeguroService.generarEnlaceSeguro(correo, receptor, claveBase64);
 
+        auditoriaService.registrarEvento(
+                emisor.getIdUsuario(),
+                AuditoriaEventoTipo.LINK_CREATED,
+                "Correo cifrado enviado a " + receptor.getCorreo(),
+                true
+        );
+        
         enviarCorreoNotificacion(emisor, receptor, correo, enlace);
 
         return enlace;

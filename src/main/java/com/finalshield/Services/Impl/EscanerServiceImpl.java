@@ -1,5 +1,6 @@
 package com.finalshield.Services.Impl;
 
+import com.finalshield.Auditoria.AuditoriaEventoTipo;
 import com.finalshield.DTO.Carpeta.ArchivoDTO;
 import com.finalshield.Model.Archivo;
 import com.finalshield.Model.CarpetaMonitorizada;
@@ -7,6 +8,7 @@ import com.finalshield.Model.Usuario;
 import com.finalshield.Repositorios.ArchivoRepositorio;
 import com.finalshield.Repositorios.CarpetaMonitorizadaRepositorio;
 import com.finalshield.Repositorios.UsuarioRepositorio;
+import com.finalshield.Services.AuditoriaEventoService;
 import com.finalshield.Services.CifradorAESService;
 import com.finalshield.Services.EscanerService;
 import com.finalshield.Services.UsuarioService;
@@ -25,6 +27,8 @@ import java.util.List;
 
 @Service
 public class EscanerServiceImpl implements EscanerService {
+    @Autowired
+    private AuditoriaEventoService auditoriaService;
 
     // Ruta base configurada en application.properties
     @Value("${finalshield.storage.base-path}")
@@ -125,6 +129,12 @@ public class EscanerServiceImpl implements EscanerService {
             }
 
             archivoRepo.save(entidad);
+            auditoriaService.registrarEvento(
+                    usuario.getIdUsuario(),
+                    AuditoriaEventoTipo.FILE_ENCRYPTED,
+                    "Archivo cifrado: " + nombreOriginal,
+                    true
+            );
 
             resultado.add(new ArchivoDTO(entidad));
         }
