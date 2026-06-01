@@ -1,9 +1,12 @@
 package com.finalshield.Model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.finalshield.Model.Chatbot.ChatMessage;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -20,4 +23,6 @@ public class Usuario {
     private String pinRealHash;
     private String pinSeguroHash;
     private String correo;
+    @OneToMany(mappedBy = "usuario")
+    private List<ChatMessage> mensajes;
 }

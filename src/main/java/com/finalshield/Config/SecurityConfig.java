@@ -59,6 +59,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/cifrado/descifrar").permitAll()
                         .requestMatchers("/api/cifrado/**").authenticated()
                         .requestMatchers("/error", "/favicon.ico").permitAll()
+                        .requestMatchers("api/chat/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
