@@ -27,7 +27,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -52,10 +51,17 @@ public class ChatbotServiceImpl implements ChatbotService {
     public ChatResponseDTO getResponse(ChatRequestDTO request)
     {
         Authentication auth=SecurityContextHolder.getContext().getAuthentication();
-        String username=auth.getName();
-        System.out.println("Usuario JWT: "+username);
-        Usuario usuario=usuarioRepositorio.findByNombre(username).orElseThrow(()-> new RuntimeException("Usuario no encontrado"));
-        Integer userId =(usuario.getIdUsuario()) ;
+
+	System.out.println("PRINCIPAL = "+auth.getPrincipal());
+	System.out.println("CLASE = "+auth.getPrincipal().getClass());
+
+	Usuario usuario=(Usuario) auth.getPrincipal();
+
+	Integer userId=usuario.getIdUsuario();
+
+
+        //System.out.println("Usuario JWT: "+username);
+        //Integer userId =(usuario.getIdUsuario()) ;
         String originalMessage = request.getMessage();
         String message = normalize(originalMessage);
         String response;
@@ -110,7 +116,7 @@ public class ChatbotServiceImpl implements ChatbotService {
         }
 
         try {
-            String aiResponse=askGemini(originalMessage);
+            String aiResponse=askGroq(originalMessage);
             saveChat(originalMessage, aiResponse, true, userId, fecha);
             return new ChatResponseDTO(aiResponse);
         } catch (Exception e) {
@@ -220,8 +226,10 @@ public class ChatbotServiceImpl implements ChatbotService {
     }
 
     @Override
-    public List<ChatHistoryDTO> getHistory(String username) {
-        Usuario usuario= usuarioRepositorio.findByNombre(username).orElseThrow(()->new RuntimeException("Usuario no encontrado"));
+    public List<ChatHistoryDTO> getHistory() {
+
+	Authentication auth= SecurityContextHolder.getContext().getAuthentication();
+	Usuario usuario=(Usuario) auth.getPrincipal();    
 
         List<ChatMessage>messages=
                 chatMessageRepositorio.findByUsuarioIdUsuarioOrderByFechaCreacionAsc(usuario.getIdUsuario());
@@ -253,49 +261,67 @@ public class ChatbotServiceImpl implements ChatbotService {
 
     private final HttpClient httpClient= HttpClient.newHttpClient();
 
-    private String askGemini(String message)
-    {
-        try{
-            String prompt = """
-            Eres FinalBot, un asistente de ciberseguridad dentro de una app llamada FinalShield de cifrado de archivos.
-            Responde de forma clara, breve y útil para estudiantes de programación.
-    
-            Usuario: %s
-            """.formatted(message);
+    private String askGroq(String message)
+{
+    try {
+        String prompt = """
+        Eres FinalBot, un asistente de ciberseguridad dentro de una app llamada FinalShield de cifrado de archivos.
+        Responde de forma clara, breve y útil para estudiantes de programación.
 
-            String jsonBody = """
-            {
-              "contents": [{
-                "parts": [{
-                  "text": "%s"
-                }]
-              }]
-            }
-            """.formatted(prompt);
+        Usuario: %s
+        """.formatted(message);
 
-            HttpRequest httpRequest=HttpRequest.newBuilder()
-                    .uri(URI.create("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=TU_API_KEY"))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
-                    .build();
-            HttpResponse<String>response= httpClient.send(
-                    httpRequest,
-                    HttpResponse.BodyHandlers.ofString()
-            );
+	String safePrompt=prompt
+		.replace("\"", "\\\"")
+		.replace("\n", "\\n");
+	
 
-            JsonNode root= objectMapper.readTree(response.body());
-
-            return root
-                    .path("candidates")
-                    .get(0)
-                    .path("content")
-                    .path("parts")
-                    .get(0)
-                    .path("text")
-                    .asText();
-        }catch (Exception e)
+        String jsonBody = """
         {
-            return ("No se pudo establecer la conexion con Gemini");
+          "model": "llama-3.3-70b-versatile",
+          "messages": [
+            {
+              "role": "user",
+              "content": "%s"
+            }
+          ],
+          "temperature": 0.7
         }
+        """.formatted(safePrompt);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.groq.com/openai/v1/chat/completions"))
+                .header("Authorization", "Bearer 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")
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(
+                request,
+                HttpResponse.BodyHandlers.ofString()
+        );
+
+       
+        System.out.println("GROQ STATUS: " + response.statusCode());
+        System.out.println("GROQ BODY: " + response.body());
+
+        JsonNode root = objectMapper.readTree(response.body());
+	
+	JsonNode choices=root.path("choices");
+
+	if(!choices.isArray() || choices.isEmpty())
+	{
+		return "Sin respuesta del modelo";
+	}
+
+        return choices.get(0)
+                .path("message")
+                .path("content")
+                .asText();
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        return "No se pudo conectar con Groq ";
     }
+}
 }

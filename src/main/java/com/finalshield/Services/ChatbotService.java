@@ -13,6 +13,6 @@ public interface ChatbotService
 
     List<SuggestionResponseDTO> getSuggestions();
 
-    List<ChatHistoryDTO> getHistory(String username);
+    List<ChatHistoryDTO> getHistory();
 
 }

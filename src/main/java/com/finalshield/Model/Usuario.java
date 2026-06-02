@@ -5,7 +5,8 @@ import com.finalshield.Model.Chatbot.ChatMessage;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import java.util.List;
 
 @Data
@@ -23,6 +24,9 @@ public class Usuario {
     private String pinRealHash;
     private String pinSeguroHash;
     private String correo;
+
+	@ToString.Exclude
+	@EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "usuario")
     private List<ChatMessage> mensajes;
 }

@@ -10,7 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
@@ -21,8 +21,12 @@ public class ChatbotController
     private ChatbotService chatbotService;
 
     @PostMapping
-    private ChatResponseDTO chatResponseDTO(@RequestBody ChatRequestDTO request)
+    private ChatResponseDTO chatResponseDTO(@RequestBody ChatRequestDTO request, HttpServletRequest servletRequest)
     {
+	System.out.println(
+            "AUTH HEADER = "
+            + servletRequest.getHeader("Authorization")
+    	);
         return chatbotService.getResponse(request);
     }
 
@@ -38,17 +42,9 @@ public class ChatbotController
     @GetMapping("/history")
     public ResponseEntity<List<ChatHistoryDTO>> getHistory()
     {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth.getName();
-
-        return ResponseEntity.ok(
-                chatbotService.getHistory(username)
-        );
+        return  ResponseEntity.ok(
+			chatbotService.getHistory()
+			);
     }
 
-    @GetMapping("/history/test")
-    public List<ChatHistoryDTO> test()
-    {
-        return chatbotService.getHistory("tu_usuario");
-    }
 }
