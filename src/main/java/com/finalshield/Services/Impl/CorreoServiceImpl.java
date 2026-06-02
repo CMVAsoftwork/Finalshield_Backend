@@ -134,7 +134,7 @@ public class CorreoServiceImpl implements CorreoService {
         MimeMessage mensaje = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mensaje, true);
 
-        String enlaceSeguro = "https://aydan-nonrepresentational-womanishly.ngrok-free.dev/api/enlaces/" + enlace.getTokenUnico() + "/validar";
+        String enlaceSeguro = "https://cristo-des.mexicocentral.cloudapp.azure.com/api/enlaces/" + enlace.getTokenUnico() + "/validar";
         String cuerpoHTML = """
 <!DOCTYPE html>
 <html lang="es">

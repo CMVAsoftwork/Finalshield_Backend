@@ -40,7 +40,7 @@ public class CorreoController {
                     adjuntos != null ? adjuntos : Collections.emptyList());
             Map<String, String> respuesta = new HashMap<>();
             respuesta.put("token", enlace.getTokenUnico());
-            respuesta.put("urlEnlaceSeguro", "https://aydan-nonrepresentational-womanishly.ngrok-free.dev/api/enlaces/" + enlace.getTokenUnico() + "/validar");
+            respuesta.put("urlEnlaceSeguro", "https://cristo-des.mexicocentral.cloudapp.azure.com/api/enlaces/" + enlace.getTokenUnico() + "/validar");
             return ResponseEntity.ok(respuesta);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al enviar correo: " + e.getMessage());
