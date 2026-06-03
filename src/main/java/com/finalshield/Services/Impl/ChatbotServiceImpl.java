@@ -110,14 +110,22 @@ public class ChatbotServiceImpl implements ChatbotService {
             response = matchedResponses.get(random);
 
             saveChat(originalMessage, response, false, userId, fecha);
-            saveSuggestion(originalMessage);
+          
 
             return new ChatResponseDTO(response);
         }
 
+	saveSuggestion(originalMessage);
+
         try {
+
+		long inicio=System.currentTimeMillis();
             String aiResponse=askGroq(originalMessage);
+	    long fin=System.currentTimeMillis();
+
+	    System.out.println("GROQ tardo "+(fin-inicio)+"ms");
             saveChat(originalMessage, aiResponse, false, userId, fecha);
+
             return new ChatResponseDTO(aiResponse);
         } catch (Exception e) {
             e.printStackTrace();

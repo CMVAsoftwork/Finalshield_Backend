@@ -20,10 +20,10 @@ public class ChatMessage
     @JoinColumn(name="usuario_id", nullable = false)
     private Usuario usuario;
 
-    @Column(length = 1000, nullable = false )
+    @Column(columnDefinition = "TEXT")
     private String mensaje;
 
-    @Column(length = 1000)
+    @Column(columnDefinition = "TEXT")
     private String respuesta;
 
     private Boolean isFallback= false;
