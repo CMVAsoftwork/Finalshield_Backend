@@ -26,6 +26,7 @@ import com.finalshield.Services.ChatbotService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,6 +38,8 @@ public class ChatbotServiceImpl implements ChatbotService {
 
     @Autowired
     private ChatRuleRepositorio chatRuleRepositorio;
+    @Value("${groq.api.key}")
+    private String groqApiKey;
 
     @Autowired
     private UsuarioRepositorio usuarioRepositorio;
@@ -52,16 +55,12 @@ public class ChatbotServiceImpl implements ChatbotService {
     {
         Authentication auth=SecurityContextHolder.getContext().getAuthentication();
 
-	System.out.println("PRINCIPAL = "+auth.getPrincipal());
-	System.out.println("CLASE = "+auth.getPrincipal().getClass());
+        Usuario usuario=(Usuario) auth.getPrincipal();
 
-	Usuario usuario=(Usuario) auth.getPrincipal();
-
-	Integer userId=usuario.getIdUsuario();
+        Integer userId=usuario.getIdUsuario();
 
 
-        //System.out.println("Usuario JWT: "+username);
-        //Integer userId =(usuario.getIdUsuario()) ;
+
         String originalMessage = request.getMessage();
         String message = normalize(originalMessage);
         String response;
@@ -111,32 +110,20 @@ public class ChatbotServiceImpl implements ChatbotService {
             response = matchedResponses.get(random);
 
             saveChat(originalMessage, response, false, userId, fecha);
+            saveSuggestion(originalMessage);
 
             return new ChatResponseDTO(response);
         }
 
         try {
             String aiResponse=askGroq(originalMessage);
-            saveChat(originalMessage, aiResponse, true, userId, fecha);
+            saveChat(originalMessage, aiResponse, false, userId, fecha);
             return new ChatResponseDTO(aiResponse);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        saveSuggestion(originalMessage);
-
-
-        List<String> fallbackResponses = List.of(
-                "No entendí esa solicitud 😭",
-                "¿Podrías reformular tu pregunta?",
-                "Aún estoy aprendiendo esa información",
-                "No tengo información sobre eso todavía"
-        );
-
-        int random =
-                (int)(Math.random() * fallbackResponses.size());
-                response=fallbackResponses.get(random);
-                return new ChatResponseDTO(response);
+                return new ChatResponseDTO("No tengo información sobre eso todavía");
     }
 
     private void saveChat(String message, String response, boolean fallback, Integer userId, LocalDateTime fecha)
@@ -263,6 +250,7 @@ public class ChatbotServiceImpl implements ChatbotService {
 
     private String askGroq(String message)
 {
+
     try {
         String prompt = """
         Eres FinalBot, un asistente de ciberseguridad dentro de una app llamada FinalShield de cifrado de archivos.
@@ -291,7 +279,7 @@ public class ChatbotServiceImpl implements ChatbotService {
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://api.groq.com/openai/v1/chat/completions"))
-                .header("Authorization", "Bearer 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")
+                .header("Authorization", "Bearer "+groqApiKey)
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                 .build();
@@ -301,9 +289,7 @@ public class ChatbotServiceImpl implements ChatbotService {
                 HttpResponse.BodyHandlers.ofString()
         );
 
-       
-        System.out.println("GROQ STATUS: " + response.statusCode());
-        System.out.println("GROQ BODY: " + response.body());
+
 
         JsonNode root = objectMapper.readTree(response.body());
 	
