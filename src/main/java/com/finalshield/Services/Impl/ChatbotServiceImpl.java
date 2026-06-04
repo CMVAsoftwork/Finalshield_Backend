@@ -261,7 +261,7 @@ public class ChatbotServiceImpl implements ChatbotService {
 
     try {
         String prompt = """
-        Eres FinalBot, un asistente de ciberseguridad dentro de una app llamada FinalShield de cifrado de archivos.
+        Eres Iummi, un asistente de ciberseguridad dentro de una app llamada FinalShield de cifrado de archivos.
         Responde de forma clara, breve y útil para estudiantes de programación.
 
         Usuario: %s
